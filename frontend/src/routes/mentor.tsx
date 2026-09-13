@@ -40,7 +40,6 @@ export const Route = createFileRoute("/mentor")({
 
 function MentorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputVal, setInputVal] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; retryQuestion?: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -55,36 +54,20 @@ function MentorPage() {
   const send = async (question: string) => {
     const text = question.trim();
     if (!text || busy) return;
-
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next);
-    setInputVal("");
+    if (inputRef.current) inputRef.current.value = "";
     setError(null);
     setBusy(true);
-
     try {
       const response = await fetch(`${API_BASE}/api/mentor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next }),
       });
-
-      const textBody = await response.text();
-      let data: { reply?: string; error?: string; detail?: string } = {};
-      try {
-        data = JSON.parse(textBody);
-      } catch {
-        throw new Error(
-          response.ok
-            ? "Invalid server response format."
-            : `Server returned error (${response.status}). Please check API key configuration.`
-        );
-      }
-
-      if (!response.ok || !data.reply) {
-        throw new Error(data.reply || data.error || data.detail || "The mentor could not answer right now.");
-      }
-
+      const data = (await response.json()) as { reply?: string; error?: string };
+      if (!response.ok || !data.reply)
+        throw new Error(data.error || "The mentor could not answer right now.");
       setMessages((current) => [...current, { role: "assistant", content: data.reply as string }]);
     } catch (caught) {
       setError({
@@ -94,23 +77,23 @@ function MentorPage() {
       });
     } finally {
       setBusy(false);
-      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!inputVal.trim() || busy) return;
-    void send(inputVal);
+    const text = inputRef.current?.value || "";
+    if (!text.trim()) return;
+    void send(text);
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
 
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-3 sm:px-6">
         {/* Header Title */}
-        <div className="py-2 text-center shrink-0">
+        <div className="py-1.5 text-center shrink-0">
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
             Your AI health mentor
           </h1>
@@ -120,9 +103,9 @@ function MentorPage() {
         </div>
 
         {/* Chat Card Container */}
-        <div className="mt-3 flex flex-1 flex-col min-h-[520px] max-h-[calc(100vh-180px)] rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
+        <div className="mt-2 flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
           {/* Top Banner */}
-          <div className="flex items-center gap-3 border-b border-border px-5 py-3.5 shrink-0 bg-card">
+          <div className="flex items-center gap-3 border-b border-border px-5 py-3 shrink-0 bg-card">
             <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.62_0.12_178)] text-primary-foreground shadow-soft">
               <HeartPulse className="size-5" />
             </span>
@@ -145,15 +128,15 @@ function MentorPage() {
           {/* Messages Scroll Area */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {messages.length === 0 && (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {suggestions.map((item) => (
                   <button
                     key={item}
                     type="button"
                     onClick={() => void send(item)}
-                    className="rounded-xl border border-border p-4 text-left text-xs sm:text-sm font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 active:scale-[0.99] cursor-pointer"
+                    className="rounded-xl border border-border p-3.5 text-left text-xs sm:text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary/40 cursor-pointer"
                   >
-                    <Sparkles className="mb-2 size-4 text-primary" />
+                    <Sparkles className="mb-1.5 size-4 text-primary" />
                     {item}
                   </button>
                 ))}
@@ -207,41 +190,23 @@ function MentorPage() {
           </div>
 
           {/* Fixed Bottom Input Bar */}
-          <form onSubmit={submit} className="relative z-20 border-t border-border p-3 sm:p-4 shrink-0 bg-card">
-            <div className="flex items-center gap-2.5">
+          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
+            <div className="flex items-center gap-2.5 relative z-50">
               <input
                 ref={inputRef}
                 type="text"
-                autoFocus
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (inputVal.trim() && !busy) void send(inputVal);
-                  }
-                }}
+                defaultValue=""
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
-                autoComplete="off"
-                disabled={busy}
-                style={{
-                  color: "#0f172a",
-                  backgroundColor: "#ffffff",
-                  caretColor: "#0d9488",
-                  opacity: 1,
-                  pointerEvents: "auto",
-                  WebkitUserSelect: "text",
-                  userSelect: "text",
-                  fontSize: "16px",
-                }}
-                className="h-12 flex-1 rounded-xl border-2 border-primary/60 px-4 text-base font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                dir="auto"
+                style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
+                className="h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="size-12 shrink-0 rounded-xl cursor-pointer"
-                disabled={busy || !inputVal.trim()}
+                className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
+                disabled={busy}
                 aria-label="Send message"
               >
                 <ArrowUp className="size-5" />
@@ -256,4 +221,3 @@ function MentorPage() {
     </div>
   );
 }
-

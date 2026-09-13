@@ -6,51 +6,44 @@ Set GROQ_API_KEY in your .env file (see .env.example).
 """
 import os
 import json
-import base64
-from pathlib import Path
 from groq import Groq
-from dotenv import load_dotenv
-
-BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
 
 api_key = os.environ.get("GROQ_API_KEY")
 _client = Groq(api_key=api_key) if api_key else None
 
 # Text-only model, used for interpretation / urgency / scheduling reasoning
-TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
+TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "llama-3.3-70b-versatile")
 
 # Vision model, used for reading lab report images
 VISION_MODEL = os.environ.get(
     "GROQ_VISION_MODEL",
-    "qwen/qwen3.6-27b"
+    "llama-3.2-11b-vision-preview"
 )
-VISION_FALLBACK_MODELS = ["openai/gpt-oss-120b"]
+VISION_FALLBACK_MODELS = ["llama-3.2-90b-vision-preview", "llama-3.3-70b-versatile"]
 
 
 def _require_client():
-    if _client is None:
+    if not _client:
         raise RuntimeError(
-            "GROQ_API_KEY is not set. Add it to backend/.env or the environment before calling the model."
+            "GROQ_API_KEY is not set. Add it to environment before calling the model."
         )
     return _client
 
 
 def _request_with_fallback(
-    client,
-    *,
+    client: Groq,
     model: str,
     messages: list,
     temperature: float,
     response_format: dict,
-    max_tokens: int = 400,
+    max_tokens: int = 700,
     fallback_models: list[str] | None = None,
     extra_body: dict | None = None,
 ):
     last_error = None
     candidates = []
     seen = set()
-    for candidate in [model, *(fallback_models or []), "openai/gpt-oss-120b", "groq/compound"]:
+    for candidate in [model, *(fallback_models or []), "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
         if candidate and candidate not in seen:
             candidates.append(candidate)
             seen.add(candidate)
@@ -68,19 +61,20 @@ def _request_with_fallback(
         except Exception as exc:
             last_error = exc
             msg = str(exc).lower()
-            if "model_not_found" not in msg and "does not exist" not in msg and "404" not in msg:
-                raise
+            if "model" in msg or "404" in msg or "not_found" in msg or "decommissioned" in msg:
+                continue
+            raise
 
     raise RuntimeError(
-        f"No valid Groq model was available for this request. Last error: {last_error}"
+        f"All requested model candidates failed. Last error: {last_error}"
     ) from last_error
 
 
-def chat_json(system_prompt: str, user_prompt: str, model: str = TEXT_MODEL, max_tokens: int = 400) -> dict:
+def chat_json(system_prompt: str, user_prompt: str, model: str = TEXT_MODEL, max_tokens: int = 700) -> dict:
     """Call Groq with a system+user prompt, force JSON output, return parsed dict."""
     client = _require_client()
     resp = _request_with_fallback(
-        client,
+        client=client,
         model=model,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -89,25 +83,29 @@ def chat_json(system_prompt: str, user_prompt: str, model: str = TEXT_MODEL, max
         temperature=0.2,
         response_format={"type": "json_object"},
         max_tokens=max_tokens,
+        fallback_models=["llama-3.1-8b-instant"],
     )
     content = resp.choices[0].message.content
-    return json.loads(content)
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Groq output was not valid JSON:\n{content}"
+        ) from exc
 
 
 def chat_json_with_image(
     system_prompt: str,
     user_prompt: str,
-    image_bytes: bytes,
+    image_base64: str,
     mime_type: str = "image/jpeg",
-    model: str = VISION_MODEL
+    model: str = VISION_MODEL,
 ) -> dict:
-    """Call Groq's vision model with an image + text, force JSON output, return parsed dict."""
-
+    """Send base64 image + prompt to Groq vision model, return parsed JSON."""
     client = _require_client()
-    b64 = base64.b64encode(image_bytes).decode("utf-8")
-
+    data_url = f"data:{mime_type};base64,{image_base64}"
     resp = _request_with_fallback(
-        client,
+        client=client,
         model=model,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -115,20 +113,19 @@ def chat_json_with_image(
                 "role": "user",
                 "content": [
                     {"type": "text", "text": user_prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime_type};base64,{b64}"
-                        },
-                    },
+                    {"type": "image_url", "image_url": {"url": data_url}},
                 ],
             },
         ],
         temperature=0.1,
         response_format={"type": "json_object"},
-        max_tokens=300,
-        extra_body={"reasoning_effort": "none"},
+        max_tokens=700,
+        fallback_models=VISION_FALLBACK_MODELS,
     )
-
     content = resp.choices[0].message.content
-    return json.loads(content)
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Groq vision output was not valid JSON:\n{content}"
+        ) from exc
