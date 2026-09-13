@@ -109,7 +109,7 @@ function MentorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-10">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-5 pt-24 pb-12 sm:pt-28">
         <Reveal>
           <div className="mb-8 text-center">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-primary backdrop-blur">

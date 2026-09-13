@@ -83,12 +83,10 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
             <Link
               key={link.to}
               to={link.to}
-              className={cn(
-                "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-                isActive(link.to, "exact" in link && link.exact)
-                  ? "bg-primary/10 text-primary"
-                  : "text-foreground/75 hover:bg-secondary hover:text-foreground",
-              )}
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              activeProps={{ className: "bg-primary/10 text-primary" }}
+              inactiveProps={{ className: "text-foreground/75 hover:bg-secondary hover:text-foreground" }}
+              className="rounded-full px-4 py-2 text-sm font-semibold transition-colors"
             >
               {link.label}
             </Link>

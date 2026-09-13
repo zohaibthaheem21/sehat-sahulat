@@ -880,9 +880,12 @@ function Results({ result, onReset }: { result: ReportResult; onReset: () => voi
 }
 
 function AppointmentForm() {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [day, setDay] = useState("Tomorrow");
   const [sent, setSent] = useState(false);
   const inputClasses =
-    "h-11 w-full rounded-xl border border-primary-foreground/20 bg-hero px-3 pl-10 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/40 focus:border-accent/70 focus:ring-2 focus:ring-accent/25";
+    "h-11 w-full rounded-xl border border-primary-foreground/20 bg-card/40 px-3 pl-10 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/50 focus:border-accent focus:ring-2 focus:ring-accent/25 relative z-10";
 
   if (sent) {
     return (
@@ -898,12 +901,13 @@ function AppointmentForm() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !phone.trim()) return;
     setSent(true);
   };
   return (
     <form
       onSubmit={submit}
-      className="relative mt-6 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 p-5"
+      className="relative z-20 mt-6 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 p-5"
     >
       <h3 className="font-display text-lg font-semibold tracking-tight">
         Request this appointment
@@ -915,11 +919,14 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <UserRound
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50"
+              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
               aria-hidden
             />
             <input
               required
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               aria-label="Full name"
               placeholder="Your full name"
               className={inputClasses}
@@ -932,12 +939,14 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <Phone
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50"
+              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
               aria-hidden
             />
             <input
               required
               type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               aria-label="Phone number"
               placeholder="03XX-XXXXXXX"
               className={inputClasses}
@@ -950,19 +959,21 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <CalendarDays
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50"
+              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
               aria-hidden
             />
             <select
+              value={day}
+              onChange={(e) => setDay(e.target.value)}
               aria-label="Preferred day"
-              className="h-11 w-full appearance-none rounded-xl border border-primary-foreground/20 bg-hero px-3 pl-10 pr-9 text-sm text-primary-foreground outline-none focus:border-accent/70"
+              className="h-11 w-full appearance-none rounded-xl border border-primary-foreground/20 bg-card/40 px-3 pl-10 pr-9 text-sm text-primary-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 relative z-10"
             >
-              <option className="bg-hero">Tomorrow</option>
-              <option className="bg-hero">This week</option>
-              <option className="bg-hero">Next week</option>
+              <option value="Tomorrow" className="bg-card text-foreground">Tomorrow</option>
+              <option value="This week" className="bg-card text-foreground">This week</option>
+              <option value="Next week" className="bg-card text-foreground">Next week</option>
             </select>
             <ChevronDown
-              className="pointer-events-none absolute right-3 top-3.5 size-4 text-primary-foreground/50"
+              className="pointer-events-none absolute right-3 top-3.5 size-4 text-primary-foreground/50 z-20"
               aria-hidden
             />
           </span>
@@ -970,7 +981,7 @@ function AppointmentForm() {
       </div>
       <Button
         type="submit"
-        className="mt-4 w-full bg-accent text-accent-foreground shadow-soft hover:bg-accent/90 hover:-translate-y-0.5"
+        className="mt-4 w-full bg-accent text-accent-foreground shadow-soft hover:bg-accent/90 hover:-translate-y-0.5 relative z-20 cursor-pointer"
       >
         Send request <ArrowRight className="size-4" />
       </Button>
