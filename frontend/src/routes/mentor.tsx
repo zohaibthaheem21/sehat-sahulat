@@ -40,10 +40,10 @@ export const Route = createFileRoute("/mentor")({
 
 function MentorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; retryQuestion?: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -54,20 +54,36 @@ function MentorPage() {
   const send = async (question: string) => {
     const text = question.trim();
     if (!text || busy) return;
+
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next);
-    if (inputRef.current) inputRef.current.value = "";
+    setInput("");
     setError(null);
     setBusy(true);
+
     try {
       const response = await fetch(`${API_BASE}/api/mentor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: next }),
       });
-      const data = (await response.json()) as { reply?: string; error?: string };
-      if (!response.ok || !data.reply)
-        throw new Error(data.error || "The mentor could not answer right now.");
+
+      const textBody = await response.text();
+      let data: { reply?: string; error?: string; detail?: string } = {};
+      try {
+        data = JSON.parse(textBody);
+      } catch {
+        throw new Error(
+          response.ok
+            ? "Invalid server response format."
+            : `Server returned error (${response.status}). Please check API key configuration.`
+        );
+      }
+
+      if (!response.ok || !data.reply) {
+        throw new Error(data.reply || data.error || data.detail || "The mentor could not answer right now.");
+      }
+
       setMessages((current) => [...current, { role: "assistant", content: data.reply as string }]);
     } catch (caught) {
       setError({
@@ -82,9 +98,8 @@ function MentorPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const text = inputRef.current?.value || "";
-    if (!text.trim()) return;
-    void send(text);
+    if (!input.trim() || busy) return;
+    void send(input);
   };
 
   return (
@@ -193,19 +208,20 @@ function MentorPage() {
           <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
             <div className="flex items-center gap-2.5 relative z-50">
               <input
-                ref={inputRef}
                 type="text"
-                defaultValue=""
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 dir="auto"
+                disabled={busy}
                 className="chat-input h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
               />
               <Button
                 type="submit"
                 size="icon"
                 className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
-                disabled={busy}
+                disabled={busy || !input.trim()}
                 aria-label="Send message"
               >
                 <ArrowUp className="size-5" />

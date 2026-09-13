@@ -3,11 +3,6 @@ Thin wrapper around the Groq SDK so agents don't each reimplement error handling
 and JSON-mode parsing.
 
 Set GROQ_API_KEY in your .env file (see .env.example).
-
-NOTE ON MODEL NAMES: Groq's available models change over time. The defaults below
-are current as of this project's setup, but double check https://console.groq.com/docs/models
-before the hackathon in case a model has been deprecated/renamed. If a model name
-below 404s, that's almost certainly why.
 """
 import os
 import json
@@ -23,15 +18,14 @@ api_key = os.environ.get("GROQ_API_KEY")
 _client = Groq(api_key=api_key) if api_key else None
 
 # Text-only model, used for interpretation / urgency / scheduling reasoning
-TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
+TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "llama-3.3-70b-versatile")
 
-# Use a model that is commonly available on Groq accounts. This app retries through a
-# small fallback list when a configured model returns 404 / model_not_found.
+# Vision model, used for reading lab report images
 VISION_MODEL = os.environ.get(
     "GROQ_VISION_MODEL",
-    "qwen/qwen3.6-27b"
+    "llama-3.2-90b-vision-preview"
 )
-VISION_FALLBACK_MODELS = ["llama-3.2-90b-vision-preview"]
+VISION_FALLBACK_MODELS = ["llama-3.2-11b-vision-preview"]
 
 
 def _require_client():
@@ -56,21 +50,21 @@ def _request_with_fallback(
     last_error = None
     candidates = []
     seen = set()
-    for candidate in [model, *(fallback_models or [])]:
+    for candidate in [model, *(fallback_models or []), "llama-3.3-70b-versatile"]:
         if candidate and candidate not in seen:
             candidates.append(candidate)
             seen.add(candidate)
 
     for candidate in candidates:
         try:
-                        return client.chat.completions.create(
-    model=candidate,
-    messages=messages,
-    response_format=response_format,
-    temperature=temperature,
-    max_tokens=max_tokens,
-    extra_body=extra_body,
-)
+            return client.chat.completions.create(
+                model=candidate,
+                messages=messages,
+                response_format=response_format,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                extra_body=extra_body,
+            )
         except Exception as exc:
             last_error = exc
             msg = str(exc).lower()
@@ -130,7 +124,7 @@ def chat_json_with_image(
                 ],
             },
         ],
-                temperature=0.1,
+        temperature=0.1,
         response_format={"type": "json_object"},
         max_tokens=700,
         extra_body={"reasoning_effort": "none"},

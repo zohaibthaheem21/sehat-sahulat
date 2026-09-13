@@ -35,12 +35,11 @@ Rules:
 - If anything sounds like an emergency (chest pain, heavy bleeding, breathlessness, fainting), tell the user to seek emergency care immediately.
 - End sensitive answers with a gentle reminder that this is educational guidance, not a diagnosis."""
 
+# Active, valid model IDs supported on Groq console API
 MENTOR_MODEL_CANDIDATES = [
-    "openai/gpt-oss-120b",
-    "qwen/qwen3.6-27b",
-    "groq/compound",
-    "openai/gpt-oss-20b",
     "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
 ]
 
 
@@ -66,7 +65,10 @@ async def process_report(file: UploadFile = File(...)):
     # Fallback to ensure all medical report images proceed through the pipeline
     if not (extraction.values or extraction.vitals or extraction.symptoms
             or extraction.impression or extraction.medications or extraction.advice):
-        from backend.models import LabValue
+        try:
+            from backend.models import LabValue
+        except ImportError:
+            from models import LabValue
         note = extraction.raw_notes if extraction.raw_notes else "Medical Document Overview"
         extraction.values.append(
             LabValue(
@@ -134,5 +136,3 @@ async def mentor_chat(req: MentorRequest):
         raise
     except Exception as e:
         raise HTTPException(500, f"Mentor request failed: {e}")
-
-
