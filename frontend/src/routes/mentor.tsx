@@ -40,10 +40,10 @@ export const Route = createFileRoute("/mentor")({
 
 function MentorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; retryQuestion?: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -56,7 +56,7 @@ function MentorPage() {
     if (!text || busy) return;
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next);
-    setInput("");
+    if (inputRef.current) inputRef.current.value = "";
     setError(null);
     setBusy(true);
     try {
@@ -82,7 +82,9 @@ function MentorPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    void send(input);
+    const text = inputRef.current?.value || "";
+    if (!text.trim()) return;
+    void send(text);
   };
 
   return (
@@ -191,10 +193,9 @@ function MentorPage() {
           <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
             <div className="flex items-center gap-2.5 relative z-50">
               <input
+                ref={inputRef}
                 type="text"
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onInput={(event) => setInput((event.target as HTMLInputElement).value)}
+                defaultValue=""
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 dir="auto"
@@ -205,7 +206,7 @@ function MentorPage() {
                 type="submit"
                 size="icon"
                 className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
-                disabled={busy || !input.trim()}
+                disabled={busy}
                 aria-label="Send message"
               >
                 <ArrowUp className="size-5" />
