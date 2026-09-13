@@ -40,10 +40,11 @@ export const Route = createFileRoute("/mentor")({
 
 function MentorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+  const [inputVal, setInputVal] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; retryQuestion?: string } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -57,7 +58,7 @@ function MentorPage() {
 
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next);
-    setInput("");
+    setInputVal("");
     setError(null);
     setBusy(true);
 
@@ -93,17 +94,18 @@ function MentorPage() {
       });
     } finally {
       setBusy(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!input.trim() || busy) return;
-    void send(input);
+    if (!inputVal.trim() || busy) return;
+    void send(inputVal);
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-[100dvh] min-h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-3 sm:px-6">
@@ -205,23 +207,24 @@ function MentorPage() {
           </div>
 
           {/* Fixed Bottom Input Bar */}
-          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
-            <div className="flex items-center gap-2.5 relative z-50">
+          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card">
+            <div className="flex items-center gap-2.5">
               <input
+                ref={inputRef}
                 type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 dir="auto"
                 disabled={busy}
-                className="chat-input h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
+                className="h-12 flex-1 rounded-xl border-2 border-primary/40 bg-background px-4 text-base font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
-                disabled={busy || !input.trim()}
+                className="size-12 shrink-0 rounded-xl cursor-pointer"
+                disabled={busy || !inputVal.trim()}
                 aria-label="Send message"
               >
                 <ArrowUp className="size-5" />
@@ -236,3 +239,4 @@ function MentorPage() {
     </div>
   );
 }
+
