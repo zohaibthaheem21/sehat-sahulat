@@ -13,7 +13,8 @@ export function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
+  // Default to true so contents are never invisible if IntersectionObserver is delayed
+  const [shown, setShown] = useState(true);
 
   useEffect(() => {
     const node = ref.current;
@@ -29,7 +30,7 @@ export function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -48px 0px" },
+      { threshold: 0.01, rootMargin: "100px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
