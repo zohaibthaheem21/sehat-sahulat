@@ -885,7 +885,7 @@ function AppointmentForm() {
   const [day, setDay] = useState("Tomorrow");
   const [sent, setSent] = useState(false);
   const inputClasses =
-    "h-11 w-full rounded-xl border border-primary-foreground/20 bg-card/40 px-3 pl-10 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/50 focus:border-accent focus:ring-2 focus:ring-accent/25 relative z-10";
+    "h-11 w-full rounded-xl border border-border bg-background px-3 pl-10 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-10";
 
   if (sent) {
     return (
@@ -919,7 +919,7 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <UserRound
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
+              className="absolute left-3 top-3.5 size-4 text-muted-foreground z-20 pointer-events-none"
               aria-hidden
             />
             <input
@@ -939,7 +939,7 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <Phone
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
+              className="absolute left-3 top-3.5 size-4 text-muted-foreground z-20 pointer-events-none"
               aria-hidden
             />
             <input
@@ -959,21 +959,21 @@ function AppointmentForm() {
           </span>
           <span className="relative block">
             <CalendarDays
-              className="absolute left-3 top-3.5 size-4 text-primary-foreground/50 z-20 pointer-events-none"
+              className="absolute left-3 top-3.5 size-4 text-muted-foreground z-20 pointer-events-none"
               aria-hidden
             />
             <select
               value={day}
               onChange={(e) => setDay(e.target.value)}
               aria-label="Preferred day"
-              className="h-11 w-full appearance-none rounded-xl border border-primary-foreground/20 bg-card/40 px-3 pl-10 pr-9 text-sm text-primary-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 relative z-10"
+              className="h-11 w-full appearance-none rounded-xl border border-border bg-background px-3 pl-10 pr-9 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-10"
             >
-              <option value="Tomorrow" className="bg-card text-foreground">Tomorrow</option>
-              <option value="This week" className="bg-card text-foreground">This week</option>
-              <option value="Next week" className="bg-card text-foreground">Next week</option>
+              <option value="Tomorrow" className="bg-background text-foreground">Tomorrow</option>
+              <option value="This week" className="bg-background text-foreground">This week</option>
+              <option value="Next week" className="bg-background text-foreground">Next week</option>
             </select>
             <ChevronDown
-              className="pointer-events-none absolute right-3 top-3.5 size-4 text-primary-foreground/50 z-20"
+              className="pointer-events-none absolute right-3 top-3.5 size-4 text-muted-foreground z-20"
               aria-hidden
             />
           </span>

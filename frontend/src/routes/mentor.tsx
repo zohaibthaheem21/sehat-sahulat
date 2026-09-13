@@ -266,7 +266,7 @@ function MentorPage() {
                   placeholder="Ask about a test, a value, or a symptom…"
                   aria-label="Message the AI mentor"
                   dir={dir}
-                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none"
+                  className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 />
                 <Button
                   type="submit"

@@ -26,7 +26,7 @@ function useActiveRoute() {
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" aria-label="Sehat Sahulat — home" className="group flex items-center gap-2.5">
+    <a href="/" aria-label="Sehat Sahulat — home" className="group flex items-center gap-2.5">
       <span
         className={cn(
           "grid place-items-center rounded-2xl bg-gradient-to-br from-primary to-[oklch(0.62_0.12_178)] text-primary-foreground shadow-soft transition-transform duration-300 group-hover:scale-105",
@@ -41,7 +41,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
           Clear health insights
         </span>
       </span>
-    </Link>
+    </a>
   );
 }
 
@@ -80,16 +80,18 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => (
-            <Link
+            <a
               key={link.to}
-              to={link.to}
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              activeProps={{ className: "bg-primary/10 text-primary" }}
-              inactiveProps={{ className: "text-foreground/75 hover:bg-secondary hover:text-foreground" }}
-              className="rounded-full px-4 py-2 text-sm font-semibold transition-colors"
+              href={link.to}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                isActive(link.to, "exact" in link && link.exact)
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground/75 hover:bg-secondary hover:text-foreground",
+              )}
             >
               {link.label}
-            </Link>
+            </a>
           ))}
         </nav>
 
