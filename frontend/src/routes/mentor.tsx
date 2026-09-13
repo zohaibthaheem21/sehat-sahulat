@@ -188,25 +188,27 @@ function MentorPage() {
           </div>
 
           {/* Fixed Bottom Input Bar */}
-          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card">
-            <div className="flex items-center gap-2.5">
+          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
+            <div className="flex items-center gap-2.5 relative z-50">
               <input
                 type="text"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
+                onInput={(event) => setInput((event.target as HTMLInputElement).value)}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 dir="auto"
-                className="h-11 flex-1 rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
+                className="h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="size-11 shrink-0 rounded-xl cursor-pointer"
+                className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
                 disabled={busy || !input.trim()}
                 aria-label="Send message"
               >
-                <ArrowUp className="size-4" />
+                <ArrowUp className="size-5" />
               </Button>
             </div>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">
