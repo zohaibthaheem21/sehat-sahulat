@@ -105,10 +105,10 @@ function MentorPage() {
   };
 
   return (
-    <div className="flex h-[100dvh] min-h-screen flex-col overflow-hidden bg-background">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
       <SiteHeader />
 
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-3 sm:px-6">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col min-h-0 overflow-hidden px-4 py-3 sm:px-6">
         {/* Header Title */}
         <div className="py-1.5 text-center shrink-0">
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
@@ -120,7 +120,7 @@ function MentorPage() {
         </div>
 
         {/* Chat Card Container */}
-        <div className="mt-2 flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+        <div className="mt-2 flex flex-1 flex-col min-h-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
           {/* Top Banner */}
           <div className="flex items-center gap-3 border-b border-border px-5 py-3 shrink-0 bg-card">
             <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.62_0.12_178)] text-primary-foreground shadow-soft">
@@ -143,7 +143,7 @@ function MentorPage() {
           </div>
 
           {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4">
             {messages.length === 0 && (
               <div className="grid gap-2.5 sm:grid-cols-2">
                 {suggestions.map((item) => (
@@ -207,16 +207,22 @@ function MentorPage() {
           </div>
 
           {/* Fixed Bottom Input Bar */}
-          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card">
+          <form onSubmit={submit} className="relative z-20 border-t border-border p-3 sm:p-4 shrink-0 bg-card">
             <div className="flex items-center gap-2.5">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    if (inputVal.trim() && !busy) submit(e);
+                  }
+                }}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
-                dir="auto"
+                autoComplete="off"
                 disabled={busy}
                 className="h-12 flex-1 rounded-xl border-2 border-primary/40 bg-background px-4 text-base font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
               />
