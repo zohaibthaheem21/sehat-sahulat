@@ -105,12 +105,12 @@ function MentorPage() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
 
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col min-h-0 overflow-hidden px-4 py-3 sm:px-6">
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6">
         {/* Header Title */}
-        <div className="py-1.5 text-center shrink-0">
+        <div className="py-2 text-center shrink-0">
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
             Your AI health mentor
           </h1>
@@ -120,9 +120,9 @@ function MentorPage() {
         </div>
 
         {/* Chat Card Container */}
-        <div className="mt-2 flex flex-1 flex-col min-h-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+        <div className="mt-3 flex flex-1 flex-col min-h-[520px] max-h-[calc(100vh-180px)] rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
           {/* Top Banner */}
-          <div className="flex items-center gap-3 border-b border-border px-5 py-3 shrink-0 bg-card">
+          <div className="flex items-center gap-3 border-b border-border px-5 py-3.5 shrink-0 bg-card">
             <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.62_0.12_178)] text-primary-foreground shadow-soft">
               <HeartPulse className="size-5" />
             </span>
@@ -143,17 +143,17 @@ function MentorPage() {
           </div>
 
           {/* Messages Scroll Area */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {messages.length === 0 && (
-              <div className="grid gap-2.5 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {suggestions.map((item) => (
                   <button
                     key={item}
                     type="button"
                     onClick={() => void send(item)}
-                    className="rounded-xl border border-border p-3.5 text-left text-xs sm:text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary/40 cursor-pointer"
+                    className="rounded-xl border border-border p-4 text-left text-xs sm:text-sm font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 active:scale-[0.99] cursor-pointer"
                   >
-                    <Sparkles className="mb-1.5 size-4 text-primary" />
+                    <Sparkles className="mb-2 size-4 text-primary" />
                     {item}
                   </button>
                 ))}
@@ -218,7 +218,7 @@ function MentorPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    if (inputVal.trim() && !busy) send(inputVal);
+                    if (inputVal.trim() && !busy) void send(inputVal);
                   }
                 }}
                 placeholder="Ask about a test, a value, or a symptom…"
