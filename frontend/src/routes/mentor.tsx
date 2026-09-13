@@ -199,8 +199,7 @@ function MentorPage() {
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 dir="auto"
-                style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
-                className="h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
+                className="chat-input h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
               />
               <Button
                 type="submit"

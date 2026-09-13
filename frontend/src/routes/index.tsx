@@ -927,11 +927,9 @@ function AppointmentForm() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onInput={(e) => setName((e.target as HTMLInputElement).value)}
               aria-label="Full name"
               placeholder="Your full name"
-              style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
-              className={inputClasses}
+              className={cn("chat-input", inputClasses)}
             />
           </span>
         </label>
@@ -949,11 +947,9 @@ function AppointmentForm() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              onInput={(e) => setPhone((e.target as HTMLInputElement).value)}
               aria-label="Phone number"
               placeholder="03XX-XXXXXXX"
-              style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
-              className={inputClasses}
+              className={cn("chat-input", inputClasses)}
             />
           </span>
         </label>
@@ -970,8 +966,7 @@ function AppointmentForm() {
               value={day}
               onChange={(e) => setDay(e.target.value)}
               aria-label="Preferred day"
-              style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
-              className="h-11 w-full appearance-none rounded-xl border border-border px-3 pl-10 pr-9 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-10"
+              className="chat-input h-11 w-full appearance-none rounded-xl border border-border px-3 pl-10 pr-9 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-10"
             >
               <option value="Tomorrow" className="bg-background text-foreground">Tomorrow</option>
               <option value="This week" className="bg-background text-foreground">This week</option>

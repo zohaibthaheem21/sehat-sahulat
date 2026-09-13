@@ -313,3 +313,13 @@
   background-clip: text;
   color: transparent;
 }
+
+.chat-input {
+  color: #1d2624 !important;
+  background-color: #ffffff !important;
+}
+.chat-input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
