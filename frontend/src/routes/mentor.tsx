@@ -97,9 +97,6 @@ function MentorPage() {
     if (error?.retryQuestion) void send(error.retryQuestion);
   };
 
-  const hasUrdu = /[\u0600-\u06FF]/.test(input);
-  const dir = hasUrdu ? "rtl" : "ltr";
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -233,7 +230,7 @@ function MentorPage() {
                   onChange={(event) => setInput(event.target.value)}
                   placeholder="Ask about a test, a value, or a symptom…"
                   aria-label="Message the AI mentor"
-                  dir={dir}
+                  dir="auto"
                   className="h-12 flex-1 rounded-2xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
                 <Button
