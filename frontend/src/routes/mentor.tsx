@@ -212,19 +212,30 @@ function MentorPage() {
               <input
                 ref={inputRef}
                 type="text"
+                autoFocus
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    if (inputVal.trim() && !busy) submit(e);
+                    if (inputVal.trim() && !busy) send(inputVal);
                   }
                 }}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
                 autoComplete="off"
                 disabled={busy}
-                className="h-12 flex-1 rounded-xl border-2 border-primary/40 bg-background px-4 text-base font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                style={{
+                  color: "#0f172a",
+                  backgroundColor: "#ffffff",
+                  caretColor: "#0d9488",
+                  opacity: 1,
+                  pointerEvents: "auto",
+                  WebkitUserSelect: "text",
+                  userSelect: "text",
+                  fontSize: "16px",
+                }}
+                className="h-12 flex-1 rounded-xl border-2 border-primary/60 px-4 text-base font-semibold text-slate-900 placeholder:text-slate-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
               />
               <Button
                 type="submit"
