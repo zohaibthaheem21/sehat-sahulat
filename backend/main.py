@@ -36,9 +36,11 @@ Rules:
 - End sensitive answers with a gentle reminder that this is educational guidance, not a diagnosis."""
 
 MENTOR_MODEL_CANDIDATES = [
+    "openai/gpt-oss-120b",
+    "qwen/qwen3.6-27b",
+    "groq/compound",
+    "openai/gpt-oss-20b",
     "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
 ]
 
 

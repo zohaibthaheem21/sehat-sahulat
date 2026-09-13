@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import { SiteHeader } from "@/components/site-chrome";
+import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,13 @@ export const Route = createFileRoute("/mentor")({
         content:
           "Ask the Sehat Sahulat AI mentor about lab tests, results and next steps in simple English or Urdu.",
       },
+      { property: "og:title", content: "AI Health Mentor | Sehat Sahulat" },
+      {
+        property: "og:description",
+        content: "Understand any lab test in plain English or Urdu, instantly.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: MentorPage,
@@ -40,39 +47,52 @@ export const Route = createFileRoute("/mentor")({
 
 function MentorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; retryQuestion?: string } | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const chatBoxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0 && chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
     }
   }, [messages, busy]);
 
   const send = async (question: string) => {
     const text = question.trim();
     if (!text || busy) return;
-    const next = [...messages, { role: "user" as const, content: text }];
-    setMessages(next);
-    if (inputRef.current) inputRef.current.value = "";
+
+    const userMsg: ChatMessage = { role: "user", content: text };
+    const nextMessages = [...messages, userMsg];
+
+    setMessages(nextMessages);
+    setInput("");
     setError(null);
     setBusy(true);
+
     try {
       const response = await fetch(`${API_BASE}/api/mentor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: nextMessages }),
       });
-      const data = (await response.json()) as { reply?: string; error?: string };
-      if (!response.ok || !data.reply)
-        throw new Error(data.error || "The mentor could not answer right now.");
-      setMessages((current) => [...current, { role: "assistant", content: data.reply as string }]);
+
+      let replyText = "";
+      try {
+        const data = (await response.json()) as { reply?: string; detail?: string; error?: string };
+        replyText = data.reply || data.detail || data.error || "";
+      } catch {
+        replyText = "";
+      }
+
+      if (!response.ok || !replyText) {
+        throw new Error(replyText || "The AI mentor could not respond right now. Please check back shortly.");
+      }
+
+      setMessages((current) => [...current, { role: "assistant", content: replyText }]);
     } catch (caught) {
       setError({
-        message:
-          caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
+        message: caught instanceof Error ? caught.message : "Something went wrong. Please try again.",
         retryQuestion: text,
       });
     } finally {
@@ -82,61 +102,70 @@ function MentorPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const text = inputRef.current?.value || "";
-    if (!text.trim()) return;
-    void send(text);
+    void send(input);
   };
 
+  const retry = () => {
+    if (error?.retryQuestion) void send(error.retryQuestion);
+  };
+
+  const hasUrdu = /[\u0600-\u06FF]/.test(input);
+  const dir = hasUrdu ? "rtl" : "ltr";
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
 
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-3 sm:px-6">
-        {/* Header Title */}
-        <div className="py-1.5 text-center shrink-0">
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
-            Your AI health mentor
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-28 pb-16 sm:px-6 sm:pt-32">
+        <div className="mb-8 text-center">
+          <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+            <span className="size-2 rounded-full bg-primary animate-pulse" aria-hidden />
+            Always-on guidance
+          </p>
+          <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
+            Your AI Health Mentor
           </h1>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
             Ask anything about lab tests, results or symptoms in plain English or Urdu.
           </p>
         </div>
 
-        {/* Chat Card Container */}
-        <div className="mt-2 flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-          {/* Top Banner */}
-          <div className="flex items-center gap-3 border-b border-border px-5 py-3 shrink-0 bg-card">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.62_0.12_178)] text-primary-foreground shadow-soft">
-              <HeartPulse className="size-5" />
+        <div className="flex min-h-[500px] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-lg">
+          {/* Card Top Header */}
+          <div className="flex items-center gap-3 border-b border-border bg-card/50 px-6 py-4 backdrop-blur">
+            <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow">
+              <HeartPulse className="size-5" aria-hidden />
             </span>
             <div>
-              <p className="font-display text-sm font-semibold text-foreground">Sehat Mentor</p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <p className="font-display font-semibold text-foreground">Sehat Mentor</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
                 {busy ? (
-                  <span className="flex items-center gap-1">
-                    <Loader2 className="size-3 animate-spin text-primary" /> Thinking…
+                  <span className="flex items-center gap-1.5 text-primary font-medium">
+                    <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                    Thinking…
                   </span>
                 ) : (
                   <>
-                    Online · English &amp; اردو <ShieldCheck className="size-3.5 text-primary" />
+                    Online · English & اردو{" "}
+                    <ShieldCheck className="size-3.5 text-primary" aria-hidden />
                   </>
                 )}
               </p>
             </div>
           </div>
 
-          {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          {/* Chat Messages Container */}
+          <div ref={chatBoxRef} className="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6 max-h-[460px]">
             {messages.length === 0 && (
-              <div className="grid gap-2.5 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2" role="list">
                 {suggestions.map((item) => (
                   <button
                     key={item}
                     type="button"
                     onClick={() => void send(item)}
-                    className="rounded-xl border border-border p-3.5 text-left text-xs sm:text-sm font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-secondary/40 cursor-pointer"
+                    className="rounded-2xl border border-border bg-background p-4 text-left text-sm font-medium text-foreground transition-all hover:border-primary/60 hover:bg-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
                   >
-                    <Sparkles className="mb-1.5 size-4 text-primary" />
+                    <Sparkles className="mb-2 size-4 text-primary" aria-hidden />
                     {item}
                   </button>
                 ))}
@@ -146,23 +175,20 @@ function MentorPage() {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={cn(
-                  "flex gap-2.5 animate-fade-up",
-                  message.role === "user" && "justify-end",
-                )}
+                className={cn("flex gap-3", message.role === "user" && "justify-end")}
               >
                 {message.role === "assistant" && (
-                  <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
-                    <HeartPulse className="size-3.5" />
+                  <span className="mt-1 grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
+                    <HeartPulse className="size-4" aria-hidden />
                   </span>
                 )}
                 <div
                   dir={/[\u0600-\u06FF]/.test(message.content) ? "rtl" : "ltr"}
                   className={cn(
-                    "max-w-[85%] whitespace-pre-wrap text-sm leading-6",
+                    "max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
                     message.role === "user"
-                      ? "rounded-2xl bg-primary px-4 py-2.5 text-primary-foreground"
-                      : "rounded-2xl border border-border bg-background px-4 py-2.5 text-foreground",
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border bg-background text-foreground shadow-sm",
                   )}
                 >
                   {message.content}
@@ -171,53 +197,60 @@ function MentorPage() {
             ))}
 
             {busy && (
-              <p className="flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
-                <Loader2 className="size-3.5 animate-spin text-primary" />
-                <span>Sehat Mentor is typing…</span>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin text-primary" aria-hidden />
+                <span>Sehat Mentor is analyzing your question…</span>
               </p>
             )}
 
             {error && (
-              <div className="flex items-start gap-2.5 rounded-xl border border-urgent/20 bg-urgent-soft p-3 text-xs font-semibold text-urgent">
-                <CircleAlert className="mt-0.5 size-4 shrink-0" />
+              <div role="alert" className="flex items-start gap-3 rounded-2xl border border-urgent/30 bg-urgent-soft p-4 text-sm font-medium text-urgent">
+                <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden />
                 <div className="flex-1">
                   <p>{error.message}</p>
+                  {error.retryQuestion && (
+                    <Button size="sm" variant="outline" className="mt-2 text-xs" onClick={retry}>
+                      <ArrowUp className="mr-1 size-3.5" /> Try again
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
-
-            <div ref={endRef} />
           </div>
 
-          {/* Fixed Bottom Input Bar */}
-          <form onSubmit={submit} className="border-t border-border p-3 sm:p-4 shrink-0 bg-card relative z-50">
-            <div className="flex items-center gap-2.5 relative z-50">
+          {/* Form Input Area */}
+          <form onSubmit={submit} className="border-t border-border bg-card p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <input
-                ref={inputRef}
+                id="mentor-chat-input"
                 type="text"
-                defaultValue=""
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about a test, a value, or a symptom…"
                 aria-label="Message the AI mentor"
-                dir="auto"
-                style={{ color: "#1D2624", backgroundColor: "#ffffff" }}
-                className="h-12 flex-1 rounded-xl border-2 border-primary/30 px-4 text-base font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 relative z-50"
+                dir={dir}
+                disabled={busy}
+                className="h-12 flex-1 rounded-2xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="size-12 shrink-0 rounded-xl cursor-pointer relative z-50"
-                disabled={busy}
+                className="size-12 shrink-0 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow"
+                disabled={busy || !input.trim()}
                 aria-label="Send message"
               >
                 <ArrowUp className="size-5" />
               </Button>
             </div>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            <p className="mt-3 text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+              <ShieldCheck className="size-3.5 text-primary" aria-hidden />
               Educational guidance only — not a medical diagnosis.
             </p>
           </form>
         </div>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

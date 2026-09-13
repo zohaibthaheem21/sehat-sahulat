@@ -67,7 +67,14 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
   const closeMenu = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-soft backdrop-blur-md shrink-0">
+    <header
+      className={cn(
+        "sticky top-0 z-50 transition-all duration-300",
+        scrolled
+          ? "border-b border-border bg-background/85 shadow-soft backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent",
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 sm:h-[4.5rem] lg:px-8">
         <Brand />
 
