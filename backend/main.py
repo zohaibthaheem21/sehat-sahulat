@@ -35,11 +35,12 @@ Rules:
 - If anything sounds like an emergency (chest pain, heavy bleeding, breathlessness, fainting), tell the user to seek emergency care immediately.
 - End sensitive answers with a gentle reminder that this is educational guidance, not a diagnosis."""
 
-# Active, valid model IDs supported on Groq console API
+# Valid active models supported by this Groq API key
 MENTOR_MODEL_CANDIDATES = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
+    "openai/gpt-oss-120b",
+    "groq/compound",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.6-27b",
 ]
 
 
@@ -119,7 +120,7 @@ async def mentor_chat(req: MentorRequest):
                     model=model_name,
                     messages=formatted_messages,
                     temperature=0.4,
-                    max_tokens=700,
+                    max_tokens=400,
                 )
                 reply = response.choices[0].message.content.strip() if response.choices else None
                 if reply:

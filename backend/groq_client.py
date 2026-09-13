@@ -18,14 +18,14 @@ api_key = os.environ.get("GROQ_API_KEY")
 _client = Groq(api_key=api_key) if api_key else None
 
 # Text-only model, used for interpretation / urgency / scheduling reasoning
-TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "llama-3.3-70b-versatile")
+TEXT_MODEL = os.environ.get("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
 
 # Vision model, used for reading lab report images
 VISION_MODEL = os.environ.get(
     "GROQ_VISION_MODEL",
-    "llama-3.2-90b-vision-preview"
+    "qwen/qwen3.6-27b"
 )
-VISION_FALLBACK_MODELS = ["llama-3.2-11b-vision-preview"]
+VISION_FALLBACK_MODELS = ["openai/gpt-oss-120b"]
 
 
 def _require_client():
@@ -43,14 +43,14 @@ def _request_with_fallback(
     messages: list,
     temperature: float,
     response_format: dict,
-    max_tokens: int = 700,
+    max_tokens: int = 400,
     fallback_models: list[str] | None = None,
     extra_body: dict | None = None,
 ):
     last_error = None
     candidates = []
     seen = set()
-    for candidate in [model, *(fallback_models or []), "llama-3.3-70b-versatile"]:
+    for candidate in [model, *(fallback_models or []), "openai/gpt-oss-120b", "groq/compound"]:
         if candidate and candidate not in seen:
             candidates.append(candidate)
             seen.add(candidate)
@@ -76,7 +76,7 @@ def _request_with_fallback(
     ) from last_error
 
 
-def chat_json(system_prompt: str, user_prompt: str, model: str = TEXT_MODEL, max_tokens: int = 700) -> dict:
+def chat_json(system_prompt: str, user_prompt: str, model: str = TEXT_MODEL, max_tokens: int = 400) -> dict:
     """Call Groq with a system+user prompt, force JSON output, return parsed dict."""
     client = _require_client()
     resp = _request_with_fallback(
@@ -126,7 +126,7 @@ def chat_json_with_image(
         ],
         temperature=0.1,
         response_format={"type": "json_object"},
-        max_tokens=700,
+        max_tokens=300,
         extra_body={"reasoning_effort": "none"},
     )
 
