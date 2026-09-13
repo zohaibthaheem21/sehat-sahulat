@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
-const API_BASE = import.meta.env["VITE_API_BASE_URL"] || "http://localhost:8000";
+const API_BASE = import.meta.env["VITE_API_BASE_URL"] || "";
 
 const suggestions = [
   "What does high HbA1c mean?",

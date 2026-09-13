@@ -71,7 +71,7 @@ type ReportResult = {
 
 // Keep the browser pointing to the FastAPI backend at http://localhost:8000 by default,
 // or use VITE_API_BASE_URL environment variable if defined.
-const API_BASE = import.meta.env["VITE_API_BASE_URL"] || "http://localhost:8000";
+const API_BASE = import.meta.env["VITE_API_BASE_URL"] || "";
 const acceptedTypes = ["image/jpeg", "image/png", "image/webp"];
 const steps = [
   "Reading report",
